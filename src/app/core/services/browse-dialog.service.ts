@@ -14,4 +14,8 @@ export class BrowseDialogService extends ProxyNodeService {
   public async selectDirectoryAsync(): Promise<string> {
     return this.proxy.invoke('selectDirectoryAsync');
   }
+
+  public async selectFileAsync(): Promise<string> {
+    return this.proxy.invoke('selectFileAsync');
+  }
 }

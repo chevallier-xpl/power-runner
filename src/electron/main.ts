@@ -55,10 +55,11 @@ function createWindow(): void {
   });
 
   const scriptCache = new NodeScriptCacheService();
+  const settingsService = new NodeSettingsService();
 
   bindService(new NodeAppService(browserWindow, isDev));
-  bindService(new NodeSettingsService());
-  bindService(new NodeScriptService(app, browserWindow, scriptCache));
+  bindService(settingsService);
+  bindService(new NodeScriptService(app, browserWindow, scriptCache, settingsService));
   bindService(new NodeProfileService());
   bindService(new NodeBrowseDialogService(browserWindow));
 
@@ -141,4 +142,3 @@ function bindService(service: object): void {
     });
   });
 }
-

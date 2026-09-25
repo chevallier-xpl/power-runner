@@ -1,6 +1,6 @@
 import { Component, HostBinding, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { IScript, IScriptFile, IScriptRun, ScriptRef } from 'src/app/core/models';
-import { NodeProxyRegistry, ScriptService } from 'src/app/core/services';
+import { NodeProxyRegistry, ScriptService, StatusService } from 'src/app/core/services';
 import { ScriptLogComponent } from '../script-log/script-log.component';
 
 @Component({
@@ -17,7 +17,8 @@ export class ScriptPageComponent implements OnInit {
 
   constructor(
     private _scriptService: ScriptService,
-    private _nodeProxyRegistry: NodeProxyRegistry
+    private _nodeProxyRegistry: NodeProxyRegistry,
+    private _statusService: StatusService
   ) { }
 
   public ngOnInit(): void {
@@ -26,7 +27,7 @@ export class ScriptPageComponent implements OnInit {
   public startRun(scriptRun: IScriptRun): void {
     this._scriptService.runAsync(scriptRun.script, scriptRun.runExternal).then((scriptChannel: string) => {
       this.scriptRef = this._nodeProxyRegistry.createScriptRef(scriptRun.script, scriptChannel);
-    });
+    }, err => this._statusService.setStatus(err.message));
   }
 
   public stopRun(script: IScript): void {

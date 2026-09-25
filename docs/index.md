@@ -47,11 +47,20 @@ Write-Host "Revert: $revert" -ForegroundColor Blue
     ![Overview](images/windows-approve-dialog.png) ![Overview](images/windows-approve-dialog-run-anyway.png)
     
 
-2. When the application starts for the first time, the settings page will be shown
-3. Click on the folder to browse to your root directory for searching for scripts
-4. Enter a pattern for search for your PowerShell scripts
+4. When the application starts for the first time, the settings page will be shown
+5. Click on the folder to browse to your root directory for searching for scripts
+6. Leave **PowerShell Executable** at its default to use Windows PowerShell, or browse to `C:\Program Files\PowerShell\7\pwsh.exe` to use PowerShell 7
+7. Enter a pattern for searching for your PowerShell scripts
     
     Example:
     ```
     MyProject\**\*.ps1
     ```
+
+To verify which PowerShell version PowerRunner uses, run a script containing:
+
+```PowerShell
+$PSVersionTable
+```
+
+The output should show the selected edition and version (for PowerShell 7, `PSEdition` is `Core`).

@@ -8,6 +8,11 @@
   .mat-form-field {
     display: block;
   }
+
+  .settings-error {
+    color: $red-500;
+    margin-bottom: $space-10;
+  }
 }
 
 #settings-search-paths {

@@ -131,10 +131,15 @@ export class ScriptFormComponent implements OnInit {
     // Clear out for loading.
     this.script = null;
 
-    this.script = await this._scriptService.parseAsync(this._file);
-    this.form = this.createFormGroup(this.script.params);
-    this._profileService.listAsync(this._file.directory, this._file.name)
-      .then(profiles => this.updateProfiles(profiles), err => console.error(err));
+    try {
+      this.script = await this._scriptService.parseAsync(this._file);
+      this.form = this.createFormGroup(this.script.params);
+      this._profileService.listAsync(this._file.directory, this._file.name)
+        .then(profiles => this.updateProfiles(profiles), err => console.error(err));
+    } catch (err) {
+      this._statusService.setStatus(err.message);
+      console.error(err);
+    }
   }
 
   public addProfile(): void {
