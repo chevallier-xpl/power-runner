@@ -8,10 +8,12 @@ import {
 } from '@angular/platform-browser-dynamic/testing';
 
 declare const require: any;
-(window as any).proxyApi = {
-  receive: () => undefined,
-  send: () => undefined
-};
+if (!(window as any).proxyApi) {
+  (window as any).proxyApi = {
+    receive: () => undefined,
+    send: () => undefined
+  };
+}
 
 // First, initialize the Angular testing environment.
 getTestBed().initTestEnvironment(
@@ -19,6 +21,9 @@ getTestBed().initTestEnvironment(
   platformBrowserDynamicTesting()
 );
 // Then we find all the tests.
-const context = require.context('./app', true, /\.spec\.ts$/);
+const contexts = [
+  require.context('./app', true, /\.spec\.ts$/),
+  require.context('./', false, /\.spec\.ts$/)
+];
 // And load the modules.
-context.keys().map(context);
+contexts.forEach(context => context.keys().map(context));
