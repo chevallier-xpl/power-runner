@@ -76,13 +76,13 @@ The output should show the selected edition and version (for PowerShell 7, `PSEd
 ## Baseline commands
 
 ```bash
-npm ci
+npm ci --ignore-scripts
 npm run build
 npm run lint
 npm run test:ci
 ```
 
-These commands are non-interactive and suitable for CI. The regular `npm test` command still starts Karma in watch mode for local development.
+These commands are non-interactive and suitable for CI. `npm ci --ignore-scripts` avoids native postinstall work that is not needed for the baseline lint/build/test pipeline. The regular `npm test` command still starts Karma in watch mode for local development.
 
 1. Install `Node.js 14.21.x` from https://nodejs.org/en/
 2. Install `Visual Studio Code` from https://code.visualstudio.com/
@@ -111,4 +111,4 @@ These commands are non-interactive and suitable for CI. The regular `npm test` c
 10. Copy the files from `release\installers\PowerRunner-win32-x64` to that release
 
 # Troubleshooting
-- `.yarnrc` must always reflect the same `target` as the `electron` version in the `package.json`
+- If you update the Electron version, refresh any npm install artifacts from a clean checkout before rebuilding native dependencies.

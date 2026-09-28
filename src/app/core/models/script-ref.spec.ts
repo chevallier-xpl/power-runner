@@ -6,7 +6,7 @@ import { ScriptStatus } from './script-status.enum';
 describe('ScriptRef', () => {
   it('should register proxy listeners for script output and exit events', () => {
     const receive = jasmine.createSpy('receive');
-    const script = { status: ScriptStatus.Pending } as IScript;
+    const script = { status: ScriptStatus.Stopped } as IScript;
 
     const scriptRef = new ScriptRef(script, { receive } as unknown as IProxyApi, 'script-1');
 

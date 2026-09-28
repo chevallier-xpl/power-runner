@@ -8,6 +8,10 @@ import {
 } from '@angular/platform-browser-dynamic/testing';
 
 declare const require: any;
+(window as any).proxyApi = {
+  receive: () => undefined,
+  send: () => undefined
+};
 
 // First, initialize the Angular testing environment.
 getTestBed().initTestEnvironment(
