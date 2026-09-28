@@ -67,9 +67,25 @@ The output should show the selected edition and version (for PowerShell 7, `PSEd
 
 # Contributing
 
-1. Install `Node.js` LTS version from https://nodejs.org/en/
-2. Install `Yarn` from https://classic.yarnpkg.com/en/docs/install/#windows-stable
-3. Install `Visual Studio Code` from https://code.visualstudio.com/
+## Development baseline
+
+- Node.js `14.21.x`
+- npm `7.x`
+- The repository uses `package-lock.json` as the canonical lockfile. Use `npm ci` for deterministic installs.
+
+## Baseline commands
+
+```bash
+npm ci
+npm run build
+npm run lint
+npm run test:ci
+```
+
+These commands are non-interactive and suitable for CI. The regular `npm test` command still starts Karma in watch mode for local development.
+
+1. Install `Node.js 14.21.x` from https://nodejs.org/en/
+2. Install `Visual Studio Code` from https://code.visualstudio.com/
 3. Install `Windows Build Tools` by running the following from an elevated command prompt:
     ```bash
     npm install --global --production windows-build-tools
@@ -78,7 +94,7 @@ The output should show the selected edition and version (for PowerShell 7, `PSEd
 5. Install project dependencies by running the following from the command line in the repository directory:
 
     ```bash
-    yarn
+    npm ci
     ```
 6. Make any changes and submit a pull request
 
@@ -90,7 +106,7 @@ The output should show the selected edition and version (for PowerShell 7, `PSEd
 5. Merge the `release/` branch into `master`
 6. Delete the `release\PowerRunner-win32-x64` folder if it exists
 7. Remove any versions you no longer want to support as an upgrade from `release\installers\PowerRunner-win32-x64`
-8. Run `yarn package-installer`
+8. Run `npm run package-installer`
 9. Create a new release on GitHub
 10. Copy the files from `release\installers\PowerRunner-win32-x64` to that release
 
