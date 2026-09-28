@@ -84,7 +84,7 @@ npm run test:ci
 
 These commands are non-interactive and suitable for CI. `npm ci --ignore-scripts` avoids native postinstall work that is not needed for the baseline lint/build/test pipeline. The regular `npm test` command still starts Karma in watch mode for local development.
 
-1. Install `Node.js 14.21.x` from https://nodejs.org/en/
+1. Install `Node.js 14.21.x` from https://nodejs.org/en/ and install npm `7.24.2` with `npm install --global npm@7.24.2`.
 2. Install `Visual Studio Code` from https://code.visualstudio.com/
 3. Install `Windows Build Tools` by running the following from an elevated command prompt:
     ```bash
