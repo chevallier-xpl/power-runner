@@ -77,15 +77,15 @@ export class NodeScriptCacheService {
     }
   }
 
-  public async getFileHashAsync(file: IScriptFile): Promise<string> {
+  public async getFileHashAsync(file: IScriptFile, cacheKey: string = ''): Promise<string> {
 
     const filePath = `${file.directory}\\${file.name}`;
     const fileContent = await NodeScriptCacheService.readFileAsync(filePath);
-    const hash = Md5.hashStr(fileContent) as string;
+    const hash = Md5.hashStr(`${fileContent}:${cacheKey}`) as string;
     return hash;
   }
 
-  public async listUncachedFilesAsync(files: IScriptFile[]): Promise<IUncachedScriptFile[]> {
+  public async listUncachedFilesAsync(files: IScriptFile[], cacheKey: string = ''): Promise<IUncachedScriptFile[]> {
     const db = await this._db;
     await this.dbEnsureScriptTableAsync(db);
 
@@ -104,7 +104,7 @@ export class NodeScriptCacheService {
     rows.forEach(r => lookup[`${r.module}:${r.name}`] = r.hash);
     const uncachedFilesPromises = files.map(file => {
       const hash = lookup[`${file.module}:${file.name}`];
-      return this.getUncachedFileAsync(file, hash);
+      return this.getUncachedFileAsync(file, hash, cacheKey);
     });
 
     const uncachedFiles = await Promise.all(uncachedFilesPromises);
@@ -163,8 +163,12 @@ export class NodeScriptCacheService {
       NodeScriptCacheService.MetadataVersion,  script.module, script.name);
   }
 
-  private async getUncachedFileAsync(file: IScriptFile, cachedHash: string): Promise<IUncachedScriptFile> {
-    const hash = await this.getFileHashAsync(file);
+  private async getUncachedFileAsync(
+    file: IScriptFile,
+    cachedHash: string,
+    cacheKey: string
+  ): Promise<IUncachedScriptFile> {
+    const hash = await this.getFileHashAsync(file, cacheKey);
 
     // Cache is already up to date.
     if (hash === cachedHash) {

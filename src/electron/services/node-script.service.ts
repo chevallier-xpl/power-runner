@@ -1,18 +1,16 @@
 require = require("esm")(module);
 
-import { exec, spawn } from 'child_process';
+import { ChildProcess, execFile, spawn } from 'child_process';
 import { App, BrowserWindow, clipboard, ipcMain } from 'electron';
 import globby from 'globby';
 import { IPty, spawn as ptySpawn } from 'node-pty';
 import os from 'os';
 import path from 'path';
 import { IScript, IScriptExit, IScriptFile, ScriptStatus } from '../../app/core/models';
-import { ScriptFormatter } from '../../app/core/utils/script-formatter';
 import { RunSettings } from '../../app/run-settings';
 import { NodeScriptCacheService } from './node-script-cache.service';
-
-// Initialize node-pty with an appropriate shell
-const shell = process.env[os.platform() === 'win32' ? 'COMSPEC' : 'SHELL'];
+import { NodeSettingsService } from './node-settings.service';
+import { PowerShellCommand } from './power-shell-command';
 
 export class NodeScriptService {
 
@@ -21,29 +19,30 @@ export class NodeScriptService {
   private static readonly FileExtensionRegex = /.ps1$/i;
   private static readonly NodeModulesRegex = /node_modules/i;
 
-  // TODO GBJ: Make compatible with Linux.
-  private static readonly PowerShellPath = `${process.env.SYSTEMROOT}\\system32\\WindowsPowerShell\\v1.0\\powershell.exe`;
-  private static readonly CommandPath = `${process.env.SYSTEMROOT}\\system32\\cmd.exe`;
-
-  private _childProcesses = new Map<string, IPty>();
+  private _childProcesses = new Map<string, IPty | ChildProcess>();
   private _outputColumns = 120;
   private _outputRows = 30;
 
   constructor(
     private _app: App,
     private _browserWindow: BrowserWindow,
-    private _cache: NodeScriptCacheService
+    private _cache: NodeScriptCacheService,
+    private _settings: NodeSettingsService
   ) {
     ipcMain.on('script:data-ack', (event: any, scriptId: string) => {
       const child = this._childProcesses.get(scriptId);
-      if (child) {
+      if (child && NodeScriptService.isPty(child)) {
         child.write(NodeScriptService.Resume);
       }
     });
     ipcMain.on('output:resize', (event: any, columns: number, rows: number) => {
       this._outputColumns = columns;
       this._outputRows = rows;
-      this._childProcesses.forEach(p => p.resize(columns, rows));
+      this._childProcesses.forEach(p => {
+        if (NodeScriptService.isPty(p)) {
+          p.resize(columns, rows);
+        }
+      });
     });
   }
 
@@ -66,23 +65,19 @@ export class NodeScriptService {
     return Promise.resolve();
   }
 
-  public runAsync(script: IScript, runExternal: boolean = false): Promise<string>  {
+  public async runAsync(script: IScript, runExternal: boolean = false): Promise<string>  {
+    const powerShellExecutable = await this._settings.getPowerShellExecutableAsync();
+    const invocation = PowerShellCommand.createScriptInvocation(powerShellExecutable, script, runExternal);
+    const scriptChannel = NodeScriptService.getScriptChannel(script);
+
+    if (runExternal) {
+      clipboard.writeText(PowerShellCommand.createScriptCommand(script));
+      return this.runExternalAsync(script, scriptChannel, invocation.executable, invocation.args);
+    }
 
     return new Promise((resolve, reject) => {
-
       try {
-        const paramList = script.params.map(p => ScriptFormatter.formatParam(p)).join(' ');
-        const command = !runExternal
-          ? `.\\${script.name} ${paramList}`
-          // tslint:disable-next-line: max-line-length
-          : `Invoke-Command { cmd /c start ${NodeScriptService.PowerShellPath} -NoExit .\\${script.name} ${paramList} }`;
-
-        // Set clipboard for use in external window.
-        if (runExternal) {
-          clipboard.writeText(`.\\${script.name} ${paramList}`);
-        }
-
-        const child = ptySpawn(NodeScriptService.PowerShellPath, [command], {
+        const child = ptySpawn(invocation.executable, invocation.args, {
           name: 'xterm-color',
           cols: this._outputColumns,
           rows: this._outputRows,
@@ -91,8 +86,6 @@ export class NodeScriptService {
           handleFlowControl: true
         });
 
-        const name = script.name.replace(NodeScriptService.FileExtensionRegex, '');
-        const scriptChannel = `${script.module}_${name}`;
         this._childProcesses.set(script.id, child);
 
         child.onData((data: string) => {
@@ -109,7 +102,7 @@ export class NodeScriptService {
         });
 
         setTimeout(() => {
-          this._browserWindow.webContents.send(`${scriptChannel}:data`, command);
+          this._browserWindow.webContents.send(`${scriptChannel}:data`, PowerShellCommand.createScriptCommand(script));
         }, 1);
 
         // Reply with a channel to listen on for stdout, stderr, and exit.
@@ -125,7 +118,9 @@ export class NodeScriptService {
     const child = this._childProcesses.get(script.id);
     if (child) {
       try {
-        child.write(NodeScriptService.Pause);
+        if (NodeScriptService.isPty(child)) {
+          child.write(NodeScriptService.Pause);
+        }
         child.kill();
       } catch {
         // Do nothing.
@@ -134,17 +129,18 @@ export class NodeScriptService {
   }
 
   public async parseAsync(file: IScriptFile): Promise<IScript> {
+    const powerShellExecutable = await this._settings.getPowerShellExecutableAsync();
 
     let script: IScript;
     if (!RunSettings.Cache) {
-      script = await this.internalParseAsync(file);
+      script = await this.internalParseAsync(file, powerShellExecutable);
       return script;
     }
 
-    const hash = await this._cache.getFileHashAsync(file);
+    const hash = await this._cache.getFileHashAsync(file, powerShellExecutable);
     script = await this._cache.getAsync(file.module, file.name);
     if (!script || script.hash !== hash) {
-      script = await this.internalParseAsync(file);
+      script = await this.internalParseAsync(file, powerShellExecutable);
       script.hash = hash;
       await this._cache.setAsync(script);
     }
@@ -155,11 +151,12 @@ export class NodeScriptService {
   }
 
   public async preCacheAsync(files: IScriptFile[]): Promise<void> {
+    const powerShellExecutable = await this._settings.getPowerShellExecutableAsync();
 
-    const uncachedFiles = await this._cache.listUncachedFilesAsync(files);
+    const uncachedFiles = await this._cache.listUncachedFilesAsync(files, powerShellExecutable);
 
     for (const entry of uncachedFiles) {
-      const script = await this.internalParseAsync(entry.file);
+      const script = await this.internalParseAsync(entry.file, powerShellExecutable);
       script.hash = entry.hash;
       await this._cache.setAsync(script);
     }
@@ -169,8 +166,7 @@ export class NodeScriptService {
     await this._cache.disposeAsync();
   }
 
-  private internalParseAsync(file: IScriptFile): Promise<IScript> {
-
+  private async internalParseAsync(file: IScriptFile, powerShellExecutable: string): Promise<IScript> {
     return new Promise((resolve, reject) => {
 
       const filePath = `${file.directory}\\${file.name}`;
@@ -178,8 +174,13 @@ export class NodeScriptService {
         ? `${process.resourcesPath}\\app`
         : path.dirname(this._app.getAppPath());
       const workingDirectory = `${resourcesPath}\\electron\\powershell`;
-      const command = `"${NodeScriptService.PowerShellPath}" "${workingDirectory}\\GetCommandMetadata.ps1" "${filePath}"`;
-      exec(command, { cwd: workingDirectory }, (error, stdout, stderr) => {
+      const metadataScriptPath = `${workingDirectory}\\GetCommandMetadata.ps1`;
+      const invocation = PowerShellCommand.createMetadataInvocation(
+        powerShellExecutable,
+        metadataScriptPath,
+        filePath
+      );
+      execFile(invocation.executable, invocation.args, { cwd: workingDirectory }, (error, stdout, stderr) => {
 
         if (error) {
           console.error(error);
@@ -208,6 +209,40 @@ export class NodeScriptService {
     });
   }
 
+  private runExternalAsync(
+    script: IScript,
+    scriptChannel: string,
+    executable: string,
+    args: string[]
+  ): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const child = spawn(executable, args, {
+        cwd: script.directory,
+        detached: true,
+        env: process.env,
+        stdio: 'ignore',
+        windowsHide: false
+      });
+
+      child.once('error', err => {
+        this._childProcesses.delete(script.id);
+        reject(err);
+      });
+      child.once('spawn', () => {
+        this._childProcesses.set(script.id, child);
+        resolve(scriptChannel);
+      });
+      child.once('exit', exitCode => {
+        this._browserWindow.webContents.send(`${scriptChannel}:exit`, {
+          scriptName: script.name,
+          exitCode: exitCode === null ? -1 : exitCode
+        } as IScriptExit);
+        this._childProcesses.delete(script.id);
+      });
+      child.unref();
+    });
+  }
+
   private getScriptFile(filePath: string): IScriptFile {
 
     let directory = path.dirname(filePath);
@@ -225,5 +260,14 @@ export class NodeScriptService {
     };
 
     return file;
+  }
+
+  private static getScriptChannel(script: IScript): string {
+    const name = script.name.replace(NodeScriptService.FileExtensionRegex, '');
+    return `${script.module}_${name}`;
+  }
+
+  private static isPty(child: IPty | ChildProcess): child is IPty {
+    return typeof (child as IPty).write === 'function';
   }
 }

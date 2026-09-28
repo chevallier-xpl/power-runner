@@ -140,8 +140,13 @@ export class AppComponent implements OnDestroy, OnInit {
 
   private async preCacheAsync(files: IScriptFile[]): Promise<void> {
     if (files.length > 0) {
-      await this._scriptService.preCacheAsync(files);
-      this._statusService.setStatus(`Pre-cache complete`);
+      try {
+        await this._scriptService.preCacheAsync(files);
+        this._statusService.setStatus(`Pre-cache complete`);
+      } catch (err) {
+        this._statusService.setStatus(err.message);
+        console.error(err);
+      }
     }
   }
 
