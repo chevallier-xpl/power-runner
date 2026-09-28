@@ -11,10 +11,10 @@ import { ScriptLogComponent } from './script-log.component';
 class MockScriptLogWriterDirective {
   @Input() public scriptRef: unknown;
 
-  public searchNext(): void {
+  public searchNext(searchText: string): void {
   }
 
-  public searchPrevious(): void {
+  public searchPrevious(searchText: string): void {
   }
 
   public onResize(): void {
