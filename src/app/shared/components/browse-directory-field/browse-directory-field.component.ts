@@ -3,6 +3,7 @@ import { ControlContainer, FormGroup } from '@angular/forms';
 import { BrowseDialogService } from 'src/app/core/services';
 
 @Component({
+  standalone: false,
   selector: 'pru-browse-directory-field',
   templateUrl: './browse-directory-field.component.html',
   styleUrls: ['./browse-directory-field.component.scss'],

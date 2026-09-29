@@ -34,12 +34,8 @@ import { ScriptLogWriterDirective } from './directives/script-log-writer.directi
     CommonModule,
     SharedModule,
     ReactiveFormsModule,
-    AngularSplitModule.forChild(),
+    AngularSplitModule,
     MarkdownModule.forChild()
-  ],
-  entryComponents: [
-    AddProfileDialogComponent,
-    AppUpdateDialogComponent
   ],
   exports: [
     ScriptTreeComponent,

@@ -1,4 +1,5 @@
-import { IScriptParam, ParamType } from '../models';
+import { IScriptParam } from '../models/iscript-param';
+import { ParamType } from '../models/param-type.enum';
 
 export class ScriptFormatter {
 

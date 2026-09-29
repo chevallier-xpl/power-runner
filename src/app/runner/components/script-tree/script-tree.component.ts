@@ -4,6 +4,7 @@ import { MatTreeNestedDataSource } from '@angular/material/tree';
 import { IScriptFile, IScriptNode } from 'src/app/core/models';
 
 @Component({
+  standalone: false,
   selector: 'pru-script-tree',
   templateUrl: './script-tree.component.html',
   styleUrls: ['./script-tree.component.scss'],

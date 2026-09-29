@@ -1,13 +1,13 @@
-@import "../../../../styles/variables";
+@use "../../../../styles/variables";
 
 .script-tree-title {
   text-transform: uppercase;
-  font-size: $font-size-11;
+  font-size: variables.$font-size-11;
   font-weight: normal;
-  margin: 0 0 0 $space-20;
+  margin: 0 0 0 variables.$space-20;
   padding: 0;
   line-height: 3.5rem;
-  color: $white-300;
+  color: variables.$white-300;
 }
 
 .script-tree-invisible {

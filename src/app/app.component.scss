@@ -1,4 +1,4 @@
-@import "../styles/variables";
+@use "../styles/variables";
 
 .pru {
   display: flex;
@@ -8,30 +8,30 @@
 
 #script-tree-drawer {
   width: 29rem;
-  background: $gray-700;
+  background: variables.$gray-700;
 }
 
 #main-content {
-  background: $gray-800;
+  background: variables.$gray-800;
   display: flex;
   flex-direction: column;
 }
 
 .main-logo {
-  color: $blue-500;
+  color: variables.$blue-500;
   font-size: 2.2rem;
 }
 
 #main-title {
   flex: 1;
   text-align: center;
-  font-size: $font-size-13;
-  color: $white-300;
+  font-size: variables.$font-size-13;
+  color: variables.$white-300;
 }
 
 #main-toolbar {
   display: flex;
-  background: $gray-500;
+  background: variables.$gray-500;
   -webkit-app-region: drag;
 
   .mat-button {
@@ -43,8 +43,8 @@
     -webkit-app-region: no-drag;
 
     .mat-icon {
-      font-size: $font-size-16;
-      color: $white-300;
+      font-size: variables.$font-size-16;
+      color: variables.$white-300;
     }
   }
 }

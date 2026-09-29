@@ -19,14 +19,14 @@ import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatTreeModule } from '@angular/material/tree';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { AngularSplitModule } from 'angular-split';
-import { AutoSizeInputModule } from 'ngx-autosize-input';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatNativeDateModule } from '@angular/material/core'
 import { BrowseDirectoryFieldComponent } from './components';
+import { AutoSizeInputDirective } from './directives/auto-size-input.directive';
 
 @NgModule({
   declarations: [
+    AutoSizeInputDirective,
     BrowseDirectoryFieldComponent
   ],
   imports: [
@@ -50,9 +50,7 @@ import { BrowseDirectoryFieldComponent } from './components';
     MatTabsModule,
     MatButtonToggleModule,
     ClipboardModule,
-    ReactiveFormsModule,
-    AngularSplitModule.forChild(),
-    AutoSizeInputModule
+    ReactiveFormsModule
   ],
   exports: [
     MatButtonModule,
@@ -74,7 +72,7 @@ import { BrowseDirectoryFieldComponent } from './components';
     MatTabsModule,
     MatButtonToggleModule,
     ClipboardModule,
-    AutoSizeInputModule,
+    AutoSizeInputDirective,
     BrowseDirectoryFieldComponent
   ]
 })

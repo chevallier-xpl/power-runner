@@ -1,6 +1,6 @@
-@import "variables";
+@use "variables";
 
 .pru .as-split-gutter {
-  background-color: $gray-500 !important;
+  background-color: variables.$gray-500 !important;
   flex-basis: 0.1rem !important;
 }

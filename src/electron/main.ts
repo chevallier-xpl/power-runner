@@ -39,7 +39,6 @@ function createWindow(): void {
       webPreferences: {
         nodeIntegration: false,
         contextIsolation: true,
-        enableRemoteModule: false,
         preload: path.join(__dirname, `/../../${appRoot}/powerrunner/preload.js`) // use a preload script
       }
     });

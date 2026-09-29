@@ -5,8 +5,8 @@
       <mat-label>Name</mat-label>
       <input matInput formControlName="name" cdkFocusInitial>
     </mat-form-field>
-    <label id="save-as-type">Save As</label>
-    <mat-radio-group aria-label="Save As" aria-labelledby="save-as-type" formControlName="saveAsType">
+    <label id="save-as-type-label" for="save-as-type">Save As</label>
+    <mat-radio-group id="save-as-type" aria-label="Save As" aria-labelledby="save-as-type-label" formControlName="saveAsType">
       <mat-radio-button value="Shared">Shared</mat-radio-button>
       <mat-radio-button value="Personal">Personal</mat-radio-button>
     </mat-radio-group>

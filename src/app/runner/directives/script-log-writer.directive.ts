@@ -9,6 +9,7 @@ import { WebLinksAddon } from 'xterm-addon-web-links';
 const proxyApi: IProxyApi = (window as any).proxyApi;
 
 @Directive({
+  standalone: false,
   selector: '[pruScriptLogWriter]',
   exportAs: 'scriptLogWriter'
 })

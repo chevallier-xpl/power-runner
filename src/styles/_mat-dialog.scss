@@ -1,6 +1,6 @@
-@import 'variables';
+@use 'variables';
 
 .mat-dialog-actions {
-  margin-top: $space-15;
+  margin-top: variables.$space-15;
   justify-content: center;
 }

@@ -1,11 +1,7 @@
-import { Injectable } from '@angular/core';
 import { BrowserWindow } from 'electron';
 const electron = require('electron');
 const dialog = electron.dialog;
 
-@Injectable({
-  providedIn: 'root'
-})
 export class NodeBrowseDialogService {
 
   constructor(

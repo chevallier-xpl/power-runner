@@ -1,17 +1,13 @@
-import { Inject, Injectable } from '@angular/core';
 import { app, BrowserWindow } from 'electron';
 const isElevated = require('is-elevated');
 
-@Injectable({
-  providedIn: 'root'
-})
 export class NodeAppService {
 
   private _version: string;
 
   constructor(
     private _browserWindow: BrowserWindow,
-    @Inject('IS_DEV') isDev: boolean
+    isDev: boolean
   ) {
     const packageJsonPath = isDev
     ? '../../../package.json'

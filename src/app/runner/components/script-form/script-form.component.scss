@@ -1,4 +1,4 @@
-@import "../../../../styles/variables";
+@use "../../../../styles/variables";
 
 .script-form {
   width: 100%;
@@ -7,12 +7,12 @@
 
   .mat-form-field {
     min-width: 15rem;
-    margin-left: $space-15;
+    margin-left: variables.$space-15;
     max-width: 98%;
   }
 
   .mat-checkbox {
-    margin-left: $space-15;
+    margin-left: variables.$space-15;
   }
 
   .small-fixed {
@@ -22,29 +22,29 @@
 }
 
 .script-form-path {
-  font-size: $font-size-11;
+  font-size: variables.$font-size-11;
   display: block;
-  margin: 0 0 $space-10 0.3rem;
+  margin: 0 0 variables.$space-10 0.3rem;
 }
 
 .script-form-description {
-  padding: $space-6 $space-10;
-  background-color: $blue-100;
-  border: solid 0.1rem $blue-500;
+  padding: variables.$space-6 variables.$space-10;
+  background-color: variables.$blue-100;
+  border: solid 0.1rem variables.$blue-500;
   border-left-width: 0.5rem;
-  font-size: $font-size-11;
-  color: $gray-900;
-  margin-left: $space-20;
+  font-size: variables.$font-size-11;
+  color: variables.$gray-900;
+  margin-left: variables.$space-20;
   flex-grow: 1;
   display: flex;
   align-items: center;
 
   p {
-    margin-left: $space-10;
+    margin-left: variables.$space-10;
   }
 
   .mat-icon {
-    color: $blue-500;
+    color: variables.$blue-500;
   }
 }
 
@@ -56,7 +56,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  padding: $space-6 $space-15 $space-15;
+  padding: variables.$space-6 variables.$space-15 variables.$space-15;
   padding-left: 0;
 
   .script-profile {
@@ -69,13 +69,13 @@
   }
 
   .script-profile-name {
-    padding-left: $space-25;
+    padding-left: variables.$space-25;
   }
 
   .script-loading {
     display: flex;
     margin-top: 5rem;
-    font-size: $font-size-16;
+    font-size: variables.$font-size-16;
     justify-content: center;
     align-items: center;
 
@@ -95,8 +95,8 @@
 }
 
 .profile-actions {
-  padding-left: $space-6;
-  border-bottom: 0.1rem solid $white-200;
+  padding-left: variables.$space-6;
+  border-bottom: 0.1rem solid variables.$white-200;
 
   .mat-icon-button {
     height: 3rem;
@@ -109,10 +109,10 @@
 
 .script-actions {
   min-width: 10rem;
-  margin-left: $space-15;
+  margin-left: variables.$space-15;
 
   .mat-button-toggle {
-    background-color: $blue-500;
+    background-color: variables.$blue-500;
   }
 
   .script-run {
@@ -124,7 +124,7 @@
   }
 
   button, .mat-button-toggle-group {
-    margin-left: $space-15;
+    margin-left: variables.$space-15;
 
     &:first-child {
       margin-left: 0;

@@ -10,6 +10,7 @@ import { AddProfileDialogComponent } from '../add-profile-dialog/add-profile-dia
 
 
 @Component({
+  standalone: false,
   selector: 'pru-script-form',
   templateUrl: './script-form.component.html',
   styleUrls: ['./script-form.component.scss'],

@@ -3,6 +3,7 @@ import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { IAppUpdate } from 'src/app/core/models';
 
 @Component({
+  standalone: false,
   selector: 'pru-app-update-dialog',
   templateUrl: './app-update-dialog.component.html',
   styleUrls: ['./app-update-dialog.component.scss'],

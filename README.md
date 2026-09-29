@@ -69,34 +69,41 @@ The output should show the selected edition and version (for PowerShell 7, `PSEd
 
 ## Development baseline
 
-- Node.js `14.21.x`
-- npm `7.x`
+- Node.js `24.15.x` (LTS)
+- npm `12.1.x`
+- Angular CLI/Core/Material/CDK `22.2.x`
+- TypeScript `6.0.x`, RxJS `7.8.x`, Zone.js `0.16.x`
 - The repository uses `package-lock.json` as the canonical lockfile. Use `npm ci --ignore-scripts` for deterministic installs.
 
 ## Baseline commands
 
 ```bash
+npm install --global npm@12.1.0
 npm ci --ignore-scripts
 npm run build
 npm run lint
 npm run test:ci
 ```
 
-These commands are non-interactive and suitable for CI. `npm ci --ignore-scripts` avoids native postinstall work that is not needed for the baseline lint/build/test pipeline. The regular `npm test` command still starts Karma in watch mode for local development.
+These commands are non-interactive and suitable for CI. `npm ci --ignore-scripts` avoids native postinstall work that is not needed for the renderer lint/build/test pipeline. The regular `npm test` command starts Karma in watch mode for local development.
 
-1. Install `Node.js 14.21.x` from https://nodejs.org/en/ and install npm `7.24.2` with `npm install --global npm@7.24.2`.
+### Frontend toolchain decisions
+
+- The renderer uses Angular 22.2 with the current application builder and the Material 2 theme APIs. Material 2 is retained to preserve the existing interface rather than redesigning it around Material 3.
+- ESLint replaces TSLint/Codelyzer. The lint target covers renderer source, templates, and renderer tests; the Electron process remains a separate migration scope.
+- Protractor has been removed. Playwright is the selected approach for future browser/Electron end-to-end flows; it is not wired into this renderer-only change because the Electron upgrade is tracked separately.
+- Karma remains for the existing Jasmine browser unit suite. Angular's supported build package still provides a Karma builder, so replacing the runner would add test-framework churn without improving the renderer upgrade. Re-evaluate Vitest when the suite is next materially reworked.
+- For future Angular major updates, apply the Angular CLI, Core, Material, and CDK migrations one major version at a time with `ng update`, and run the build, lint, and unit tests at each step. This upgrade moves the legacy NgModule application to the supported builder while preserving its module structure and existing UI.
+
+1. Install `Node.js 24.15.x` from https://nodejs.org/en/ and install npm `12.1.0` with `npm install --global npm@12.1.0`.
 2. Install `Visual Studio Code` from https://code.visualstudio.com/
-3. Install `Windows Build Tools` by running the following from an elevated command prompt:
-    ```bash
-    npm install --global --production windows-build-tools
-    ```
-4. Clone the repository and create a new feature branch
-5. Install project dependencies by running the following from the command line in the repository directory:
+3. Clone the repository and create a new feature branch
+4. Install project dependencies by running the following from the command line in the repository directory:
 
     ```bash
     npm ci --ignore-scripts
     ```
-6. Make any changes and submit a pull request
+5. Make any changes and submit a pull request
 
 # Creating a Release
 1. Start a new `feature/` branch from `develop`

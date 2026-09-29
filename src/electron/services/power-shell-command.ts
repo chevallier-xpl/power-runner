@@ -1,4 +1,4 @@
-import { IScript } from '../../app/core/models';
+import { IScript } from '../../app/core/models/iscript';
 import { ScriptFormatter } from '../../app/core/utils/script-formatter';
 
 export interface IPowerShellInvocation {

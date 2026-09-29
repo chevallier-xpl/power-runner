@@ -9,6 +9,7 @@ import { AppUpdateDialogComponent } from './runner/components';
 const proxyApi: IProxyApi = (window as any).proxyApi;
 
 @Component({
+  standalone: false,
   selector: 'pru-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss'],
@@ -94,7 +95,7 @@ export class AppComponent implements OnDestroy, OnInit {
     this._appService.toggleDeveloperToolsAsync();
   }
 
-  public settingsClosed(result: string): void {
+  public settingsClosed(result: string | void): void {
     this.showSettings = false;
 
     if (result === 'saved') {

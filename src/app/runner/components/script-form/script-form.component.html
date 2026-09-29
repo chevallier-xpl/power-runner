@@ -10,7 +10,7 @@
   </div>
   <form class="script-form-form" *ngIf="form && script; else loading" [formGroup]="form">
     <div class="script-form-header" [formGroup]="profileForm">
-      <mat-form-field class="script-profile" appearance="standard">
+      <mat-form-field class="script-profile" appearance="fill">
         <mat-label>Profile</mat-label>
         <mat-select formControlName="selectedProfileId">
           <mat-select-trigger>
@@ -63,17 +63,17 @@
 
         <mat-form-field *ngSwitchCase="ParamType.Array">
           <mat-label>{{param.name}}</mat-label>
-          <input autoSizeInput matInput type="text" [formControlName]="param.name" [setParentWidth]="true">
+          <input pruAutoSizeInput matInput type="text" [formControlName]="param.name" [setParentWidth]="true">
         </mat-form-field>
 
         <mat-form-field *ngSwitchCase="ParamType.SecureString">
           <mat-label>{{param.name}}</mat-label>
-          <input autoSizeInput matInput type="password" [formControlName]="param.name" [setParentWidth]="true">
+          <input pruAutoSizeInput matInput type="password" [formControlName]="param.name" [setParentWidth]="true">
         </mat-form-field>
 
         <mat-form-field *ngSwitchCase="ParamType.Number">
           <mat-label>{{param.name}}</mat-label>
-          <input autoSizeInput matInput type="number" [formControlName]="param.name" [setParentWidth]="true">
+          <input pruAutoSizeInput matInput type="number" [formControlName]="param.name" [setParentWidth]="true">
         </mat-form-field>
 
         <mat-form-field *ngSwitchCase="ParamType.Date" class="small-fixed">
@@ -96,7 +96,7 @@
 
         <mat-form-field *ngSwitchDefault>
           <mat-label>{{param.name}}</mat-label>
-          <input autoSizeInput matInput type="text" [formControlName]="param.name" [setParentWidth]="true">
+          <input pruAutoSizeInput matInput type="text" [formControlName]="param.name" [setParentWidth]="true">
         </mat-form-field>
 
       </ng-container>
