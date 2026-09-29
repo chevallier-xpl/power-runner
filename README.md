@@ -71,7 +71,7 @@ The output should show the selected edition and version (for PowerShell 7, `PSEd
 
 - Node.js `14.21.x`
 - npm `7.x`
-- The repository uses `package-lock.json` as the canonical lockfile. Use `npm ci` for deterministic installs.
+- The repository uses `package-lock.json` as the canonical lockfile. Use `npm ci --ignore-scripts` for deterministic installs.
 
 ## Baseline commands
 
@@ -94,7 +94,7 @@ These commands are non-interactive and suitable for CI. `npm ci --ignore-scripts
 5. Install project dependencies by running the following from the command line in the repository directory:
 
     ```bash
-    npm ci
+    npm ci --ignore-scripts
     ```
 6. Make any changes and submit a pull request
 
