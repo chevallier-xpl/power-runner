@@ -1,4 +1,4 @@
-@import "variables";
+@use "variables";
 
 .pru {
 
@@ -6,7 +6,7 @@
     text-align: center;
 
     button {
-      margin-left: $space-15;
+      margin-left: variables.$space-15;
 
       &:first-child {
         margin-left: 0;

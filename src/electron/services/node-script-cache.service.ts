@@ -1,16 +1,13 @@
-import { Injectable } from '@angular/core';
 import fs from 'fs';
 import fsx from 'fs-extra';
 import os from 'os';
 import path from 'path';
 import { Database } from 'sqlite3';
 import { Md5 } from 'ts-md5/dist/md5';
-import { IScript, IScriptFile } from '../../app/core/models';
+import { IScript } from '../../app/core/models/iscript';
+import { IScriptFile } from '../../app/core/models/iscript-file';
 import { IUncachedScriptFile } from '../models';
 
-@Injectable({
-  providedIn: 'root'
-})
 export class NodeScriptCacheService {
 
   private static readonly MetadataVersion = '1.0.1'; // Added datetime support for picker.

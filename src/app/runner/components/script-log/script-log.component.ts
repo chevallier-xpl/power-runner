@@ -1,17 +1,18 @@
-import { Component, HostBinding, Input, OnInit, ViewChild, ViewEncapsulation, OnDestroy } from '@angular/core';
+import { Component, DestroyRef, HostBinding, Input, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormControl, FormGroup } from '@angular/forms';
-import { OnDestroyMixin, untilComponentDestroyed } from '@w11k/ngx-componentdestroyed';
 import { ScriptRef } from 'src/app/core/models';
 import { ScriptLogWriterDirective } from '../../directives/script-log-writer.directive';
 
 @Component({
+  standalone: false,
   selector: 'pru-script-log',
   templateUrl: './script-log.component.html',
   styleUrls: ['./script-log.component.scss'],
   encapsulation: ViewEncapsulation.None,
   exportAs: 'scriptLog'
 })
-export class ScriptLogComponent extends OnDestroyMixin implements OnInit {
+export class ScriptLogComponent implements OnInit {
 
   @HostBinding('class.script-log') public className = true;
 
@@ -26,19 +27,13 @@ export class ScriptLogComponent extends OnDestroyMixin implements OnInit {
     }
   );
 
-  constructor() {
-    super();
-  }
+  constructor(private _destroyRef: DestroyRef) { }
 
   public ngOnInit(): void {
     this.formGroup.get('searchText').valueChanges
-      .pipe(untilComponentDestroyed(this))
+      .pipe(takeUntilDestroyed(this._destroyRef))
       .subscribe(() => this.searchNext());
   }
-
-  public ngOnDestroy(): void {
-  }
-
   public clearSearch(): void {
     this.formGroup.patchValue({
       searchText: ''

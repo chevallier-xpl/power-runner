@@ -1,4 +1,4 @@
-import { IScriptFile } from '../../app/core/models';
+import { IScriptFile } from '../../app/core/models/iscript-file';
 
 export interface IUncachedScriptFile {
   file: IScriptFile;

@@ -4,7 +4,6 @@
   <mat-form-field class="script-log-search" appearance="outline">
     <input matInput placeholder="Search" formControlName="searchText">
     <button
-      mat-button
       [style.visibility]="formGroup.get('searchText').value ? 'visible' : 'hidden'"
       matSuffix mat-icon-button aria-label="Clear" (click)="clearSearch()">
       <mat-icon>close</mat-icon>
@@ -12,10 +11,10 @@
   </mat-form-field>
 
   <div class="script-log-search-arrows">
-    <button mat-button mat-icon-button aria-label="Previous" (click)="searchPrevious()">
+    <button mat-icon-button aria-label="Previous" (click)="searchPrevious()">
       <mat-icon>arrow_upward</mat-icon>
     </button>
-    <button mat-button mat-icon-button aria-label="Next" (click)="searchNext()">
+    <button mat-icon-button aria-label="Next" (click)="searchNext()">
       <mat-icon>arrow_downward</mat-icon>
     </button>
   </div>

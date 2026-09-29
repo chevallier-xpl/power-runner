@@ -1,4 +1,4 @@
-@import "../../../../styles/variables";
+@use "../../../../styles/variables";
 
 .script-log {
   flex: 1;
@@ -20,7 +20,7 @@
 .script-output {
   position: absolute;
   top: 4.7rem;
-  left: $space-15;
+  left: variables.$space-15;
   bottom: 0;
   right: 0;
 }
@@ -29,11 +29,11 @@
   display: flex;
 
   h2 {
-    font-size: $font-size-11;
-    color: $white-300;
+    font-size: variables.$font-size-11;
+    color: variables.$white-300;
     font-weight: normal;
     text-transform: uppercase;
-    margin: $space-10 $space-15 $space-15 $space-15;
+    margin: variables.$space-10 variables.$space-15 variables.$space-15 variables.$space-15;
     padding: 0;
   }
 }
@@ -68,6 +68,6 @@
 }
 
 .script-log-search-arrows {
-  font-size: $font-size-11;
-  margin: 0 $space-6 0 $space-4
+  font-size: variables.$font-size-11;
+  margin: 0 variables.$space-6 0 variables.$space-4
 }

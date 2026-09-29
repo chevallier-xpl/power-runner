@@ -2,11 +2,12 @@
     "extends": "./tsconfig.json",
     "compilerOptions": {
         "outDir": "./dist", // <-- Note that we're making electron parallel to the app.
+        "rootDir": "./src",
         "types": ["node"], // <-- We need the "node" type for typescript.
-        "module": "CommonJs",
+        "module": "Node16",
+        "moduleResolution": "Node16",
         "esModuleInterop": true
     },
-    "baseUrl": ".",
     "include": [
         "src/electron/main.ts" // <-- This is the only file included.
     ]

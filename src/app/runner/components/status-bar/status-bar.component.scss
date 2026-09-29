@@ -1,11 +1,11 @@
-@import "../../../../styles/variables";
+@use "../../../../styles/variables";
 
 .status-bar {
-  background-color: $blue-500;
+  background-color: variables.$blue-500;
   height: 2.2rem;
-  padding: 0.3rem $space-10 0 $space-10;
+  padding: 0.3rem variables.$space-10 0 variables.$space-10;
   display: flex;
-  color: $white-100;
+  color: variables.$white-100;
 }
 
 #status-bar-version {

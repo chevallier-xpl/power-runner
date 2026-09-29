@@ -1,4 +1,4 @@
-@import "../../../../styles/variables";
+@use "../../../../styles/variables";
 
 .script-page {
 
@@ -8,7 +8,7 @@
 
   .script-form-area {
     display: flex;
-    background-color: $gray-800;
+    background-color: variables.$gray-800;
   }
 
   .script-log {
@@ -18,6 +18,6 @@
   .script-log-area {
     display: flex;
     flex-direction: column;
-    background-color: $gray-800;
+    background-color: variables.$gray-800;
   }  
 }

@@ -1,17 +1,17 @@
-@import "../../../../styles/variables";
+@use "../../../../styles/variables";
 
 .settings-pane {
   display: block;
   width: 40rem;
-  padding: $space-15;
+  padding: variables.$space-15;
 
   .mat-form-field {
     display: block;
   }
 
   .settings-error {
-    color: $red-500;
-    margin-bottom: $space-10;
+    color: variables.$red-500;
+    margin-bottom: variables.$space-10;
   }
 }
 

@@ -1,14 +1,12 @@
-import { Injectable } from '@angular/core';
 import fs from 'fs-extra';
 import yaml from 'node-yaml';
 import os from 'os';
 import path from 'path';
 import _ from 'underscore';
-import { IScriptProfile, IScriptProfileMap, SaveAsType } from '../../app/core/models';
+import { IScriptProfile } from '../../app/core/models/iscript-profile';
+import { IScriptProfileMap } from '../../app/core/models/iscript-profile-map';
+import { SaveAsType } from '../../app/core/models/save-as-type.enum';
 
-@Injectable({
-  providedIn: 'root'
-})
 export class NodeProfileService {
   private static readonly SharedFileName = '.powerrunnerrc';
   private _personalProfileFile: string;

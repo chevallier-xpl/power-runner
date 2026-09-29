@@ -4,6 +4,7 @@ import { NodeProxyRegistry, ScriptService, StatusService } from 'src/app/core/se
 import { ScriptLogComponent } from '../script-log/script-log.component';
 
 @Component({
+  standalone: false,
   selector: 'pru-script-page',
   templateUrl: './script-page.component.html',
   styleUrls: ['./script-page.component.scss'],

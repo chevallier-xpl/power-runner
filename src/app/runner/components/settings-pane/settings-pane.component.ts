@@ -4,6 +4,7 @@ import { ISettings } from 'src/app/core/models';
 import { BrowseDialogService, SettingsService, StatusService } from 'src/app/core/services';
 
 @Component({
+  standalone: false,
   selector: 'pru-settings-pane',
   templateUrl: './settings-pane.component.html',
   styleUrls: ['./settings-pane.component.scss'],

@@ -1,13 +1,9 @@
-import { Injectable } from '@angular/core';
 import fs from 'fs-extra';
 import yaml from 'node-yaml';
 import os from 'os';
 import path from 'path';
-import { ISettings } from '../../app/core/models';
+import { ISettings } from '../../app/core/models/isettings';
 
-@Injectable({
-  providedIn: 'root'
-})
 export class NodeSettingsService {
   public static readonly DefaultPowerShellExecutable =
     `${process.env.SYSTEMROOT || 'C:\\Windows'}\\system32\\WindowsPowerShell\\v1.0\\powershell.exe`;

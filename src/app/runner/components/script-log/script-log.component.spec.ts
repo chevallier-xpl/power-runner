@@ -5,6 +5,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { ScriptLogComponent } from './script-log.component';
 
 @Directive({
+  standalone: false,
   selector: '[pruScriptLogWriter]',
   exportAs: 'scriptLogWriter'
 })

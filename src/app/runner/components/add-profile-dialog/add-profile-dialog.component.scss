@@ -1,4 +1,4 @@
-@import "../../../../styles/variables";
+@use "../../../../styles/variables";
 
 .add-profile-dialog {
 
@@ -7,6 +7,6 @@
   }
 
   .error {
-    color: $red-500;
+    color: variables.$red-500;
   }
 }

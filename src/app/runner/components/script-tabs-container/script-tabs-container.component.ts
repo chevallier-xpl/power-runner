@@ -1,7 +1,8 @@
 import { Component, HostBinding, Input, OnInit, ViewEncapsulation } from '@angular/core';
-import { IScript, IScriptFile } from 'src/app/core/models';
+import { IScriptFile } from 'src/app/core/models';
 
 @Component({
+  standalone: false,
   selector: 'pru-script-tabs-container',
   templateUrl: './script-tabs-container.component.html',
   styleUrls: ['./script-tabs-container.component.scss'],
@@ -25,7 +26,7 @@ export class ScriptTabsContainerComponent implements OnInit {
   public ngOnInit(): void {
   }
 
-  public closeTab(script: IScript): void {
+  public closeTab(script: IScriptFile): void {
     const index = this.files.findIndex(s => s.id === script.id);
     if (index !== -1) {
       this.files.splice(index, 1);

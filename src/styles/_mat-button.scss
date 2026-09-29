@@ -1,4 +1,4 @@
-@import 'variables';
+@use 'variables';
 
 .pru {
 
@@ -9,7 +9,7 @@
   .mat-flat-button,
   .mat-fab,
   .mat-mini-fab {
-    font-size: $font-size-13;
+    font-size: variables.$font-size-13;
   }
 
   .mat-button,
