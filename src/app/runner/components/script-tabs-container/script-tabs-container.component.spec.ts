@@ -1,3 +1,4 @@
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
 
 import { ScriptTabsContainerComponent } from './script-tabs-container.component';
@@ -8,7 +9,8 @@ describe('ScriptTabsContainerComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ScriptTabsContainerComponent ]
+      declarations: [ ScriptTabsContainerComponent ],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

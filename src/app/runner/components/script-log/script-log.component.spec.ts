@@ -1,6 +1,25 @@
+import { Directive, Input, NO_ERRORS_SCHEMA } from '@angular/core';
 import { ComponentFixture, TestBed, waitForAsync } from '@angular/core/testing';
+import { ReactiveFormsModule } from '@angular/forms';
 
 import { ScriptLogComponent } from './script-log.component';
+
+@Directive({
+  selector: '[pruScriptLogWriter]',
+  exportAs: 'scriptLogWriter'
+})
+class MockScriptLogWriterDirective {
+  @Input() public scriptRef: unknown;
+
+  public searchNext(searchText: string): void {
+  }
+
+  public searchPrevious(searchText: string): void {
+  }
+
+  public onResize(): void {
+  }
+}
 
 describe('ScriptLogComponent', () => {
   let component: ScriptLogComponent;
@@ -8,7 +27,9 @@ describe('ScriptLogComponent', () => {
 
   beforeEach(waitForAsync(() => {
     TestBed.configureTestingModule({
-      declarations: [ ScriptLogComponent ]
+      declarations: [ ScriptLogComponent, MockScriptLogWriterDirective ],
+      imports: [ReactiveFormsModule],
+      schemas: [NO_ERRORS_SCHEMA]
     })
     .compileComponents();
   }));

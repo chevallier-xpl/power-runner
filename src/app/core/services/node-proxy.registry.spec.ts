@@ -6,7 +6,7 @@ describe('NodeProxyRegistry', () => {
   beforeEach(() => TestBed.configureTestingModule({}));
 
   it('should be created', () => {
-    const service: NodeProxyRegistry = TestBed.get(NodeProxyRegistry);
+    const service = TestBed.inject(NodeProxyRegistry);
     expect(service).toBeTruthy();
   });
 });
