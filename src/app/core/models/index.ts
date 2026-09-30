@@ -1,4 +1,6 @@
 export { ScriptStatus } from './script-status.enum';
+export { ScriptLoadState } from './script-load-state.enum';
+export { IScriptLoadStateChange } from './iscript-load-state-change';
 export { SaveAsType } from './save-as-type.enum';
 export { ParamType } from './param-type.enum';
 export { ScriptRef } from './script-ref';

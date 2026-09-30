@@ -1,7 +1,8 @@
 import { NestedTreeControl } from '@angular/cdk/tree';
 import { Component, EventEmitter, HostBinding, Input, OnInit, Output, ViewEncapsulation } from '@angular/core';
 import { MatTreeNestedDataSource } from '@angular/material/tree';
-import { IScriptFile, IScriptNode } from 'src/app/core/models';
+import { IScriptFile, IScriptNode, ScriptLoadState } from 'src/app/core/models';
+import { ScriptService } from 'src/app/core/services';
 
 @Component({
   selector: 'pru-script-tree',
@@ -29,12 +30,17 @@ export class ScriptTreeComponent implements OnInit {
   public dataSource = new MatTreeNestedDataSource<IScriptNode>();
 
   constructor(
+    private _scriptService: ScriptService
   ) { }
 
   public ngOnInit(): void {
   }
 
   public hasChild = (index: number, node: IScriptNode) => !!node.children && node.children.length > 0;
+
+  public getLoadState(file: IScriptFile): ScriptLoadState {
+    return this._scriptService.getLoadState(file);
+  }
 
   public async openFileAsync(file: IScriptFile): Promise<void> {
     this.fileOpened.emit(file);

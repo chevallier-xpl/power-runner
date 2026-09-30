@@ -7,7 +7,7 @@ import globby from 'globby';
 import { IPty, spawn as ptySpawn } from 'node-pty';
 import os from 'os';
 import path from 'path';
-import { IScript, IScriptExit, IScriptFile, ScriptStatus } from '../../app/core/models';
+import { IScript, IScriptExit, IScriptFile, IScriptLoadStateChange, ScriptLoadState, ScriptStatus } from '../../app/core/models';
 import { RunSettings } from '../../app/run-settings';
 import { IScriptMetadataResult, IUncachedScriptFile } from '../models';
 import { NodeScriptCacheService } from './node-script-cache.service';
@@ -22,10 +22,12 @@ export class NodeScriptService {
   private static readonly NodeModulesRegex = /node_modules/i;
   private static readonly MetadataBatchSize = 25;
   private static readonly MetadataBatchConcurrency = Math.max(1, Math.min(4, os.cpus().length - 1));
-  private static readonly MetadataMaxBuffer = 64 * 1024 * 1024;
   private static readonly MetadataLinePrefix = '##PowerRunnerMetadata##';
+  // Walking dependency, repository and build output folders dominates search time on large source trees.
+  private static readonly IgnoredDirectories = ['**/[nN]ode_modules/**', '**/.git/**', '**/[bB]in/**', '**/[oO]bj/**'];
 
   private _childProcesses = new Map<string, IPty | ChildProcess>();
+  private _pendingScripts = new Map<string, { promise: Promise<void>, resolve: () => void }>();
   private _outputColumns = 120;
   private _outputRows = 30;
 
@@ -54,10 +56,18 @@ export class NodeScriptService {
 
   public async listAsync(fileGlobs: string[]): Promise<IScriptFile[]> {
 
-    const files = await globby(fileGlobs);
-    const scripts = await Promise.all(files.map(f => this.getScriptFile(f)));
+    const files = await globby(fileGlobs, { ignore: NodeScriptService.IgnoredDirectories });
+    const scripts = files.map(f => this.getScriptFile(f));
+    await this._cache.setFileListAsync(fileGlobs, scripts);
 
     return scripts;
+  }
+
+  /**
+   * Returns the result of the last listAsync call with the same globs, so the tree can show before the search completes.
+   */
+  public async listCachedAsync(fileGlobs: string[]): Promise<IScriptFile[]> {
+    return this._cache.getFileListAsync(fileGlobs);
   }
 
   public editAsync(script: IScriptFile): Promise<void>  {
@@ -135,6 +145,12 @@ export class NodeScriptService {
   }
 
   public async parseAsync(file: IScriptFile): Promise<IScript> {
+    // Reuse the in-flight pre-cache result instead of starting another PowerShell process.
+    const pending = this._pendingScripts.get(file.id);
+    if (pending) {
+      await pending.promise;
+    }
+
     const powerShellExecutable = await this._settings.getPowerShellExecutableAsync();
 
     let script: IScript;
@@ -156,10 +172,16 @@ export class NodeScriptService {
     return script;
   }
 
+  /**
+   * Caches metadata for all files, sending 'script:load-state' as each script becomes ready or fails.
+   */
   public async preCacheAsync(files: IScriptFile[]): Promise<void> {
     const powerShellExecutable = await this._settings.getPowerShellExecutableAsync();
 
     const uncachedFiles = await this._cache.listUncachedFilesAsync(files, powerShellExecutable);
+    const uncachedIds = new Set(uncachedFiles.map(u => u.file.id));
+    this.sendLoadState(files.filter(f => !uncachedIds.has(f.id)).map(f => f.id), ScriptLoadState.Ready);
+    uncachedFiles.forEach(u => this.addPendingScript(u.file.id));
 
     const batches: IUncachedScriptFile[][] = [];
     for (let i = 0; i < uncachedFiles.length; i += NodeScriptService.MetadataBatchSize) {
@@ -176,8 +198,12 @@ export class NodeScriptService {
       }
     };
 
-    const workerCount = Math.min(NodeScriptService.MetadataBatchConcurrency, batches.length);
-    await Promise.all(Array.from({ length: workerCount }, () => worker()));
+    try {
+      const workerCount = Math.min(NodeScriptService.MetadataBatchConcurrency, batches.length);
+      await Promise.all(Array.from({ length: workerCount }, () => worker()));
+    } finally {
+      uncachedFiles.forEach(u => this.resolvePendingScript(u.file.id));
+    }
 
     if (failedCount > 0) {
       throw new Error(`Pre-cache failed for ${failedCount} script(s)`);
@@ -193,36 +219,42 @@ export class NodeScriptService {
    * Returns the number of scripts that could not be parsed.
    */
   private async preCacheBatchAsync(entries: IUncachedScriptFile[], powerShellExecutable: string): Promise<number> {
-    const scripts = await this.internalParseBatchAsync(entries.map(e => e.file), powerShellExecutable);
+    const received: boolean[] = new Array(entries.length).fill(false);
+    const errored: number[] = [];
+    const writes: Promise<void>[] = [];
+    await this.internalParseBatchAsync(entries.map(e => e.file), powerShellExecutable, (index, script) => {
+      received[index] = true;
+      if (script) {
+        writes.push(this.cacheParsedScriptAsync(entries[index], script));
+      } else {
+        errored.push(index);
+      }
+    });
+    await Promise.all(writes);
 
     // The first script without any result is the one that stopped the batch process; scripts after it were never reached.
-    const firstUnreached = scripts.indexOf(undefined);
-    const unreached = firstUnreached >= 0
-      ? entries.filter((entry, i) => i > firstUnreached && scripts[i] === undefined)
-      : [];
-
-    let failedCount = 0;
-    for (let i = 0; i < entries.length; i++) {
-      let script = scripts[i];
-      if (script === undefined && i !== firstUnreached) {
-        continue;
-      }
-
-      if (!script) {
-        // Fall back to a dedicated process so the failure is reported as it was before batching.
-        try {
-          script = await this.internalParseAsync(entries[i].file, powerShellExecutable);
-        } catch (err) {
-          console.error(err);
-          failedCount++;
-          continue;
-        }
-      }
-
-      script.hash = entries[i].hash;
-      await this._cache.setAsync(script);
+    const firstUnreached = received.indexOf(false);
+    if (firstUnreached >= 0) {
+      errored.push(firstUnreached);
     }
 
+    let failedCount = 0;
+    for (const i of errored) {
+      // Fall back to a dedicated process so the failure is reported as it was before batching.
+      try {
+        const script = await this.internalParseAsync(entries[i].file, powerShellExecutable);
+        await this.cacheParsedScriptAsync(entries[i], script);
+      } catch (err) {
+        console.error(err);
+        failedCount++;
+        this.sendLoadState([entries[i].file.id], ScriptLoadState.Failed);
+        this.resolvePendingScript(entries[i].file.id);
+      }
+    }
+
+    const unreached = firstUnreached >= 0
+      ? entries.filter((entry, i) => i > firstUnreached && !received[i])
+      : [];
     if (unreached.length > 0) {
       failedCount += await this.preCacheBatchAsync(unreached, powerShellExecutable);
     }
@@ -230,16 +262,58 @@ export class NodeScriptService {
     return failedCount;
   }
 
+  private async cacheParsedScriptAsync(entry: IUncachedScriptFile, script: IScript): Promise<void> {
+    script.hash = entry.hash;
+    try {
+      await this._cache.setAsync(script);
+    } catch (err) {
+      // Metadata is still valid; parseAsync re-reads it when the cache write failed.
+      console.error(err);
+    }
+
+    this.sendLoadState([entry.file.id], ScriptLoadState.Ready);
+    this.resolvePendingScript(entry.file.id);
+  }
+
   /**
-   * Returns scripts in the same order as files: null when PowerShell reported an error for the script,
-   * undefined when no result was produced (e.g. the process exited before reaching it).
+   * Parses files in one PowerShell process, calling onResult as each script completes with the script,
+   * or null when PowerShell reported an error for it. Files without a call were never reached.
    */
-  private async internalParseBatchAsync(files: IScriptFile[], powerShellExecutable: string): Promise<IScript[]> {
+  private async internalParseBatchAsync(
+    files: IScriptFile[],
+    powerShellExecutable: string,
+    onResult: (index: number, script: IScript) => void
+  ): Promise<void> {
     const workingDirectory = this.getMetadataWorkingDirectory();
     const listPath = path.join(
       os.tmpdir(),
       `powerrunner-metadata-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}.txt`
     );
+
+    const handleLine = (line: string) => {
+      if (!line.startsWith(NodeScriptService.MetadataLinePrefix)) {
+        return;
+      }
+
+      let result: IScriptMetadataResult;
+      try {
+        result = JSON.parse(line.substring(NodeScriptService.MetadataLinePrefix.length));
+      } catch (err) {
+        console.error(err, line);
+        return;
+      }
+
+      if (!(result.index >= 0 && result.index < files.length)) {
+        return;
+      }
+
+      if (result.metadata) {
+        onResult(result.index, Object.assign({ }, files[result.index], result.metadata) as IScript);
+      } else {
+        console.warn(`Unable to read metadata for ${result.path}: ${result.error}`);
+        onResult(result.index, null);
+      }
+    };
 
     try {
       await fs.promises.writeFile(listPath, files.map(f => `${f.directory}\\${f.name}`).join('\r\n'), 'utf8');
@@ -249,53 +323,69 @@ export class NodeScriptService {
         `${workingDirectory}\\GetCommandMetadata.ps1`,
         listPath
       );
-      const stdout = await new Promise<string>(resolve => {
-        execFile(
-          invocation.executable,
-          invocation.args,
-          { cwd: workingDirectory, maxBuffer: NodeScriptService.MetadataMaxBuffer },
-          (error, out) => {
-            if (error) {
-              // Keep partial output; results written before the failure are still valid.
-              console.error(error);
-            }
-            resolve(out || '');
-          }
-        );
-      });
+      await new Promise<void>(resolve => {
+        const child = spawn(invocation.executable, invocation.args, {
+          cwd: workingDirectory,
+          stdio: ['ignore', 'pipe', 'ignore'],
+          windowsHide: true
+        });
 
-      const scripts: IScript[] = new Array(files.length).fill(undefined);
-      for (const line of stdout.split(/\r?\n/)) {
-        if (!line.startsWith(NodeScriptService.MetadataLinePrefix)) {
-          continue;
-        }
-
-        let result: IScriptMetadataResult;
         try {
-          result = JSON.parse(line.substring(NodeScriptService.MetadataLinePrefix.length));
-        } catch (err) {
-          console.error(err, line);
-          continue;
+          // Keep the UI responsive while PowerShell starts and parses in the background.
+          os.setPriority(child.pid, os.constants.priority.PRIORITY_BELOW_NORMAL);
+        } catch {
+          // Priority is best effort.
         }
 
-        if (!(result.index >= 0 && result.index < files.length)) {
-          continue;
-        }
-
-        if (result.metadata) {
-          scripts[result.index] = Object.assign({ }, files[result.index], result.metadata) as IScript;
-        } else {
-          console.warn(`Unable to read metadata for ${result.path}: ${result.error}`);
-          scripts[result.index] = null;
-        }
-      }
-
-      return scripts;
+        let buffer = '';
+        child.stdout.setEncoding('utf8');
+        child.stdout.on('data', (chunk: string) => {
+          buffer += chunk;
+          const lines = buffer.split(/\r?\n/);
+          buffer = lines.pop();
+          lines.forEach(handleLine);
+        });
+        child.on('error', err => {
+          console.error(err);
+          resolve();
+        });
+        child.on('close', (code) => {
+          if (code !== 0) {
+            // Results written before the failure are still valid.
+            console.error(`Metadata batch exited with code ${code}`);
+          }
+          handleLine(buffer);
+          resolve();
+        });
+      });
     } catch (err) {
       console.error(err);
-      return new Array(files.length).fill(undefined);
     } finally {
       await fs.promises.unlink(listPath).catch(() => undefined);
+    }
+  }
+
+  private addPendingScript(id: string): void {
+    if (this._pendingScripts.has(id)) {
+      return;
+    }
+
+    let resolve: () => void;
+    const promise = new Promise<void>(r => resolve = r);
+    this._pendingScripts.set(id, { promise, resolve });
+  }
+
+  private resolvePendingScript(id: string): void {
+    const pending = this._pendingScripts.get(id);
+    if (pending) {
+      this._pendingScripts.delete(id);
+      pending.resolve();
+    }
+  }
+
+  private sendLoadState(ids: string[], state: ScriptLoadState): void {
+    if (ids.length > 0 && this._browserWindow && !this._browserWindow.isDestroyed()) {
+      this._browserWindow.webContents.send('script:load-state', { ids, state } as IScriptLoadStateChange);
     }
   }
   private getMetadataWorkingDirectory(): string {
