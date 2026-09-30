@@ -15,10 +15,12 @@ export class NodeScriptCacheService {
 
   private static readonly MetadataVersion = '1.0.1'; // Added datetime support for picker.
   private _cacheFile: string;
+  private _fileListFile: string;
   private _db: Promise<Database>;
 
   constructor() {
     this._cacheFile = path.join(os.homedir(), '.powerrunner', 'script-cache.sqlite3');
+    this._fileListFile = path.join(os.homedir(), '.powerrunner', 'script-list.json');
     this._db = this.connectDbAsync();
   }
 
@@ -114,6 +116,28 @@ export class NodeScriptCacheService {
   public async disposeAsync(): Promise<void> {
     const db = await this._db;
     db.close();
+  }
+
+  /**
+   * Returns the file list saved by the last search with the same globs, or null when there is none.
+   */
+  public async getFileListAsync(fileGlobs: string[]): Promise<IScriptFile[]> {
+    try {
+      const saved = await fsx.readJson(this._fileListFile);
+      return saved && JSON.stringify(saved.fileGlobs) === JSON.stringify(fileGlobs) && Array.isArray(saved.files)
+        ? saved.files
+        : null;
+    } catch {
+      return null;
+    }
+  }
+
+  public async setFileListAsync(fileGlobs: string[], files: IScriptFile[]): Promise<void> {
+    try {
+      await fsx.outputJson(this._fileListFile, { fileGlobs, files });
+    } catch (err) {
+      console.warn(err);
+    }
   }
 
   private async existsAsync(db: Database, module: string, name: string): Promise<boolean> {

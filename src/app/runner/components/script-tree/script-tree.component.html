@@ -2,8 +2,9 @@
 <mat-tree [dataSource]="dataSource" [treeControl]="treeControl" class="script-tree">
   <!-- This is the tree node template for leaf nodes -->
   <mat-tree-node *matTreeNodeDef="let node" matTreeNodeToggle>
-    <li class="mat-tree-node mat-tree-node-leaf">
-      <button mat-button (click)="openFileAsync(node.script)">{{node.name}}</button>
+    <li class="mat-tree-node mat-tree-node-leaf" [ngClass]="'script-load-' + getLoadState(node.script)">
+      <button mat-button (click)="openFileAsync(node.script)"
+              [attr.title]="getLoadState(node.script) === 'failed' ? 'Unable to read script parameters' : null">{{node.name}}</button>
     </li>
   </mat-tree-node>
   <!-- This is the tree node template for expandable nodes -->

@@ -45,5 +45,14 @@
 
   .mat-tree-node-leaf {
     padding: $space-2;
+    transition: color 0.3s;
+
+    &.script-load-pending {
+      color: $gray-400;
+    }
+
+    &.script-load-failed {
+      color: $red-300;
+    }
   }
 }

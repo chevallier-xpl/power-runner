@@ -8,6 +8,10 @@ import { RunSettings } from './run-settings';
 import { AppUpdateDialogComponent } from './runner/components';
 const proxyApi: IProxyApi = (window as any).proxyApi;
 
+function sameFiles(a: IScriptFile[], b: IScriptFile[]): boolean {
+  return !!a && !!b && a.length === b.length && a.every((file, i) => file.id === b[i].id);
+}
+
 @Component({
   selector: 'pru-root',
   templateUrl: './app.component.html',
@@ -124,8 +128,25 @@ export class AppComponent implements OnDestroy, OnInit {
     this.settings = await this._settingsService.readAsync();
     if (this.settings && this.settings.basePath && this.settings.searchPaths && this.settings.searchPaths.length > 0) {
       const fullPaths = this.settings.searchPaths.map(p => this.getFullPath(p));
+      this._scriptService.resetLoadStates();
+
+      // Show the last known scripts while the search runs; the search result replaces them.
+      let searched = false;
+      let cachedFiles: IScriptFile[] = null;
+      this._scriptService.listCachedAsync(fullPaths).then((files) => {
+        if (!searched && files && files.length > 0) {
+          cachedFiles = files;
+          this._nodes.next(this.nodeTransform(files));
+        }
+      }, err => console.error(err));
+
+      this._statusService.setStatus('Searching for scripts...');
       this._scriptService.listAsync(fullPaths).then((files) => {
-        this._nodes.next(this.nodeTransform(files));
+        searched = true;
+        this._statusService.setStatus('');
+        if (!sameFiles(cachedFiles, files)) {
+          this._nodes.next(this.nodeTransform(files));
+        }
 
         if (RunSettings.PreCache) {
           setTimeout(() => this.preCacheAsync(files), 1);

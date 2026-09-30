@@ -46,4 +46,21 @@ describe('PowerShellCommand', () => {
       'C:\\My Scripts\\Sample.ps1'
     ]);
   });
+
+  it('should pass the batch script list path as a named argument', () => {
+    const invocation = PowerShellCommand.createMetadataBatchInvocation(
+      'C:\\Program Files\\PowerShell\\7\\pwsh.exe',
+      'C:\\Program Files\\PowerRunner\\GetCommandMetadata.ps1',
+      'C:\\Temp Files\\scripts.txt'
+    );
+
+    expect(invocation.executable).toBe('C:\\Program Files\\PowerShell\\7\\pwsh.exe');
+    expect(invocation.args).toEqual([
+      '-NoProfile',
+      '-File',
+      'C:\\Program Files\\PowerRunner\\GetCommandMetadata.ps1',
+      '-scriptListPath',
+      'C:\\Temp Files\\scripts.txt'
+    ]);
+  });
 });
