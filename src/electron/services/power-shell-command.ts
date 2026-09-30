@@ -37,6 +37,17 @@ export class PowerShellCommand {
     };
   }
 
+  public static createMetadataBatchInvocation(
+    executable: string,
+    metadataScriptPath: string,
+    scriptListPath: string
+  ): IPowerShellInvocation {
+    return {
+      executable,
+      args: ['-NoProfile', '-File', metadataScriptPath, '-scriptListPath', scriptListPath]
+    };
+  }
+
   private static quote(value: string): string {
     return `'${value.replace(/'/g, '\'\'')}'`;
   }
